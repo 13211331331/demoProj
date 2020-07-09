@@ -5,10 +5,15 @@
 	<artifactId>demoProj</artifactId>
 	<groupId>com.hhl</groupId>
 	<packaging>jar</packaging>
+	<version>1.0</version>
 	<name>morning-product-service</name>
 	<url>http://maven.apache.org</url>
 
 	<dependencies>
-
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-all</artifactId>
+			<version>4.1.50.Final</version>
+		</dependency>
 	</dependencies>
 </project>
