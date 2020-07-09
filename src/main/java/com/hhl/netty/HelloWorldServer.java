@@ -19,7 +19,7 @@ import java.net.InetSocketAddress;
 public class HelloWorldServer {
     private int port;
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws InterruptedException {
         new HelloWorldServer(18080).start();
     }
 
@@ -27,12 +27,11 @@ public class HelloWorldServer {
         this.port = port;
     }
 
-    public void start() {
+    public void start() throws InterruptedException {
         /**
-         * 创建两个EventLoopGroup，即两个线程池，boss线程池用于接收客户端的连接，
-         * 一个线程监听一个端口，一般只会监听一个端口所以只需一个线程
-         * work池用于处理网络连接数据读写或者后续的业务处理（可指定另外的线程处理业务，
-         * work完成数据读写）
+         * bossGroup, 父类的事件循环组只是负责连接，获取到连接后交给 workergroup子的事件循环组，
+         * 参数的获取，业务的处理等工作均是由workergroup这个子事件循环组来完成，一个事件循环组一样
+         * 可以完成所有的工作，但是Netty推荐的方式是使用两个事件循环组。
          */
         EventLoopGroup boss = new NioEventLoopGroup(1);
         EventLoopGroup work = new NioEventLoopGroup();
@@ -43,8 +42,10 @@ public class HelloWorldServer {
              * channel（）指定用于接收客户端连接的类，对应java.nio.ServerSocketChannel
              * childHandler（）设置编码解码及处理连接的类
              */
-            ServerBootstrap server = new ServerBootstrap()
-                    .group(boss, work).channel(NioServerSocketChannel.class)
+            ServerBootstrap server = new ServerBootstrap();
+
+            server.group(boss, work)
+                    .channel(NioServerSocketChannel.class)
                     .localAddress(new InetSocketAddress(port))
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
@@ -61,9 +62,7 @@ public class HelloWorldServer {
             ChannelFuture future = server.bind().sync();
             System.out.println("server started and listen " + port);
             future.channel().closeFuture().sync();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }finally {
+        } finally {
             boss.shutdownGracefully();
             work.shutdownGracefully();
         }
